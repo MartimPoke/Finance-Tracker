@@ -25,7 +25,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, categories,
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.amount || !formData.categoryId || !formData.description) return;
+    // Apenas valor e categoria são obrigatórios
+    if (!formData.amount || !formData.categoryId) {
+      alert("Por favor, introduza um valor e selecione uma categoria.");
+      return;
+    }
+    
     onSubmit({
       id: crypto.randomUUID(),
       amount: parseFloat(formData.amount),
@@ -33,7 +38,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, categories,
       categoryId: formData.categoryId,
       date: formData.date,
       method: formData.method,
-      description: formData.description,
+      // Descrição agora é verdadeiramente opcional
+      description: formData.description.trim() || (formData.type === TransactionType.INCOME ? 'Receita' : 'Despesa'),
       isRecurring: formData.isRecurring
     });
   };
@@ -62,6 +68,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, categories,
       <div className="text-center py-8">
         <input 
           type="number"
+          step="0.01"
           value={formData.amount}
           onChange={e => setFormData(f => ({ ...f, amount: e.target.value }))}
           placeholder="0.00"
@@ -90,7 +97,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, categories,
           </div>
           <input 
             type="text"
-            placeholder="O que compraste?"
+            placeholder="Nota opcional (ex: Almoço)"
             value={formData.description}
             onChange={e => setFormData(f => ({ ...f, description: e.target.value }))}
             className={`flex-1 bg-transparent border-none text-sm font-bold focus:ring-0 ${isDarkMode ? 'text-gray-200 placeholder:text-gray-700' : 'text-gray-800 placeholder:text-gray-300'}`}
@@ -112,9 +119,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, categories,
       <motion.button
         whileTap={{ scale: 0.98 }}
         onClick={handleSubmit}
-        className="w-full bg-[#0075EB] text-white py-5 rounded-3xl font-black shadow-xl shadow-blue-900/20 mt-4"
+        className="w-full bg-[#0075EB] text-white py-5 rounded-3xl font-black shadow-xl shadow-blue-900/20 mt-4 active:scale-95 transition-all"
       >
-        Confirmar
+        Confirmar Registo
       </motion.button>
     </div>
   );

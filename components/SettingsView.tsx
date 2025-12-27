@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Transaction, UserProfile } from '../types';
+import * as XLSX from 'xlsx';
 
 interface SettingsViewProps {
   transactions: Transaction[];
@@ -14,14 +15,65 @@ interface SettingsViewProps {
 const SettingsView: React.FC<SettingsViewProps> = ({ transactions, setTransactions, userProfile, setUserProfile, onLogout }) => {
   const [editingField, setEditingField] = useState<string | null>(null);
 
+  const getExportData = () => {
+    return transactions.map(t => ({
+      'ID': t.id,
+      'Data': t.date,
+      'Descrição': t.description,
+      'Valor': t.amount, // Mantido como número para o Excel
+      'Tipo': t.type === 'INCOME' ? 'Receita' : 'Despesa',
+      'Método': t.method,
+      'Recorrente': t.isRecurring ? 'Sim' : 'Não'
+    }));
+  };
+
+  const exportToExcel = () => {
+    const data = getExportData();
+    const ws = XLSX.utils.json_to_sheet(data);
+    
+    // Ajustar largura das colunas
+    const wscols = [
+      { wch: 15 }, // ID
+      { wch: 12 }, // Data
+      { wch: 30 }, // Descrição
+      { wch: 12 }, // Valor
+      { wch: 10 }, // Tipo
+      { wch: 15 }, // Método
+      { wch: 10 }  // Recorrente
+    ];
+    ws['!cols'] = wscols;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Transações");
+    
+    const fileName = `FinTrack-Extrato-${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
+
   const exportToCSV = () => {
     const headers = ['ID', 'Data', 'Descrição', 'Valor', 'Tipo', 'Método', 'Recorrente'];
-    const rows = transactions.map(t => [t.id, t.date, t.description, t.amount, t.type, t.method, t.isRecurring ? 'Sim' : 'Não']);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.join(",")).join("\n");
+    const rows = transactions.map(t => [
+      t.id,
+      t.date,
+      `"${t.description.replace(/"/g, '""')}"`, // Escapar aspas para CSV
+      t.amount.toString().replace('.', ','), // Formato decimal PT
+      t.type === 'INCOME' ? 'Receita' : 'Despesa',
+      t.method,
+      t.isRecurring ? 'Sim' : 'Não'
+    ]);
+    
+    // \uFEFF é o Byte Order Mark (BOM) para UTF-8. 
+    // O Excel usa ";" como delimitador em sistemas configurados para Portugal.
+    const csvContent = "\uFEFF" + [headers, ...rows].map(e => e.join(";")).join("\r\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodeURI(csvContent));
-    link.setAttribute("download", `fintrack_export.csv`);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `FinTrack-Extrato-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   };
 
   const cardClass = userProfile.isDarkMode ? 'bg-[#1C1F23] border-[#2A2E33]' : 'bg-white border-gray-100';
@@ -37,7 +89,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({ transactions, setTransactio
       </div>
 
       <div className={`rounded-[2.5rem] border overflow-hidden transition-colors ${cardClass}`}>
-        {/* Profile Section */}
         <div className="p-6">
           <h3 className={`text-xs font-black uppercase tracking-widest mb-4 px-2 ${userProfile.isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Perfil</h3>
           <div className="space-y-1">
@@ -47,7 +98,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({ transactions, setTransactio
           </div>
         </div>
 
-        {/* Appearance & Security */}
         <div className={`p-6 border-t ${userProfile.isDarkMode ? 'border-[#2A2E33]' : 'border-gray-50'}`}>
           <h3 className={`text-xs font-black uppercase tracking-widest mb-4 px-2 ${userProfile.isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Aparência</h3>
           <ToggleRow label="Modo Noturno" icon="fa-moon" iconColor="bg-indigo-500" active={userProfile.isDarkMode} onToggle={() => setUserProfile(p => ({ ...p, isDarkMode: !p.isDarkMode }))} isDarkMode={userProfile.isDarkMode} />
@@ -56,14 +106,25 @@ const SettingsView: React.FC<SettingsViewProps> = ({ transactions, setTransactio
           </div>
         </div>
 
-        {/* Data & Session */}
         <div className={`p-6 border-t ${userProfile.isDarkMode ? 'border-[#2A2E33]' : 'border-gray-50'}`}>
-          <h3 className={`text-xs font-black uppercase tracking-widest mb-4 px-2 ${userProfile.isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Sessão e Dados</h3>
+          <h3 className={`text-xs font-black uppercase tracking-widest mb-4 px-2 ${userProfile.isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Exportação e Dados</h3>
           <div className="space-y-3">
-            <button onClick={exportToCSV} className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold ${userProfile.isDarkMode ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-              <i className="fa-solid fa-file-export"></i> Exportar Dados (CSV)
+            <button 
+              onClick={exportToExcel} 
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all active:scale-95 ${userProfile.isDarkMode ? 'bg-green-900/20 text-green-400 border border-green-900/30' : 'bg-green-50 text-green-700 border border-green-100'}`}
+            >
+              <i className="fa-solid fa-file-excel"></i> Exportar para Excel (.xlsx)
             </button>
-            <button onClick={onLogout} className="w-full flex items-center gap-4 p-4 rounded-2xl font-bold bg-red-50 text-red-600">
+            <button 
+              onClick={exportToCSV} 
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold transition-all active:scale-95 ${userProfile.isDarkMode ? 'bg-blue-900/20 text-blue-400 border border-blue-900/30' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}
+            >
+              <i className="fa-solid fa-file-csv"></i> Exportar CSV (Excel Compatível)
+            </button>
+            <button 
+              onClick={onLogout} 
+              className="w-full flex items-center gap-4 p-4 rounded-2xl font-bold bg-red-50 text-red-600 border border-red-100 active:scale-95"
+            >
               <i className="fa-solid fa-right-from-bracket"></i> Terminar Sessão
             </button>
           </div>

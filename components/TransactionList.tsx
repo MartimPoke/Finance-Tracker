@@ -22,7 +22,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, categor
 
   const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
-  const cardClass = isDarkMode ? 'bg-[#1C1F23] border-[#2A2E33] active:bg-[#2A2E33]' : 'bg-white border-gray-100 active:bg-gray-50';
+  const cardClass = isDarkMode ? 'bg-[#1C1F23] border-[#2A2E33]' : 'bg-white border-gray-100';
 
   return (
     <div className="space-y-6 pb-4">
@@ -42,30 +42,37 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, categor
                   transition={{ delay: idx * 0.05 }}
                   className={`p-4 rounded-[1.5rem] border flex items-center justify-between group relative overflow-hidden transition-colors ${cardClass}`}
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div 
-                      className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-sm"
+                      className="w-10 h-10 rounded-2xl flex-shrink-0 flex items-center justify-center text-white shadow-sm"
                       style={{ backgroundColor: cat?.color || '#ccc' }}
                     >
-                      <i className={`fa-solid ${cat?.icon || 'fa-tag'} text-lg`}></i>
+                      <i className={`fa-solid ${cat?.icon || 'fa-tag'} text-base`}></i>
                     </div>
-                    <div>
-                      <h5 className={`text-sm font-extrabold ${isDarkMode ? 'text-gray-200' : 'text-[#191C1F]'}`}>{t.description}</h5>
+                    <div className="min-w-0 flex-1 pr-2">
+                      <h5 className={`text-sm font-extrabold truncate ${isDarkMode ? 'text-gray-200' : 'text-[#191C1F]'}`}>
+                        {t.description}
+                      </h5>
                       <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-bold uppercase tracking-tight ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>{cat?.name}</span>
-                        <span className="text-[8px] text-gray-300">•</span>
-                        <span className={`text-[10px] font-bold ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>{t.method}</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-tight truncate ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>{cat?.name}</span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex flex-col items-end gap-1">
-                    <span className={`text-sm font-black ${t.type === TransactionType.INCOME ? 'text-green-600' : (isDarkMode ? 'text-white' : 'text-[#191C1F]')}`}>
-                      {t.type === TransactionType.INCOME ? '+' : '-'}{t.amount.toFixed(2)}€
+                  {/* Container fixo para valor e botão para evitar quebra em ecrãs pequenos ou valores grandes */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className={`text-sm font-black tabular-nums ${t.type === TransactionType.INCOME ? 'text-green-600' : (isDarkMode ? 'text-white' : 'text-[#191C1F]')}`}>
+                      {t.type === TransactionType.INCOME ? '+' : '-'}{t.amount.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}€
                     </span>
                     <button 
-                      onClick={() => onDelete(t.id)}
-                      className={`transition-colors opacity-0 group-hover:opacity-100 ${isDarkMode ? 'text-gray-700 hover:text-red-500' : 'text-gray-200 hover:text-red-500'}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm('Deseja eliminar este registo permanentemente?')) {
+                          onDelete(t.id);
+                        }
+                      }}
+                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${isDarkMode ? 'bg-red-900/20 text-red-400 hover:bg-red-900/40' : 'bg-red-50 text-red-500 hover:bg-red-100'}`}
+                      aria-label="Eliminar"
                     >
                       <i className="fa-solid fa-trash-can text-xs"></i>
                     </button>

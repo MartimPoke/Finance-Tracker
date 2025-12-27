@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Transaction, Category, TransactionType, UserProfile } from './types';
-import { INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from './constants';
+import { INITIAL_CATEGORIES } from './constants';
 import Dashboard from './components/Dashboard';
 import TransactionForm from './components/TransactionForm';
 import CategoryManager from './components/CategoryManager';
@@ -30,41 +30,17 @@ const App: React.FC = () => {
       const savedData = localStorage.getItem(userKey);
       
       if (savedData) {
-        try {
-          const parsed = JSON.parse(savedData);
-          setTransactions(parsed.transactions || []);
-          setCategories(parsed.categories || INITIAL_CATEGORIES);
-          setUserProfile(parsed.profile || {
-            name: currentUser.charAt(0).toUpperCase() + currentUser.slice(1),
-            age: 25,
-            job: 'Financista',
-            currency: 'EUR',
-            hideBalance: false,
-            isDarkMode: false
-          });
-        } catch (error) {
-          console.error('Error parsing saved data:', error);
-          setTransactions(INITIAL_TRANSACTIONS);
-          setCategories(INITIAL_CATEGORIES);
-          setUserProfile({
-            name: currentUser.charAt(0).toUpperCase() + currentUser.slice(1),
-            age: 25,
-            job: 'Financista',
-            currency: 'EUR',
-            hideBalance: false,
-            isDarkMode: false
-          });
-        }
+        const parsed = JSON.parse(savedData);
+        setTransactions(parsed.transactions || []);
+        setCategories(parsed.categories || INITIAL_CATEGORIES);
+        setUserProfile(parsed.profile || { ...userProfile, name: currentUser });
       } else {
-        setTransactions(INITIAL_TRANSACTIONS);
+        // NOVO UTILIZADOR: Começa com TUDO A ZEROS
+        setTransactions([]); 
         setCategories(INITIAL_CATEGORIES);
-        setUserProfile({
-          name: currentUser.charAt(0).toUpperCase() + currentUser.slice(1),
-          age: 25,
-          job: 'Financista',
-          currency: 'EUR',
-          hideBalance: false,
-          isDarkMode: false
+        setUserProfile({ 
+          ...userProfile, 
+          name: currentUser.charAt(0).toUpperCase() + currentUser.slice(1) 
         });
       }
     }
@@ -72,50 +48,38 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (currentUser) {
-      try {
-        const userKey = `fintrack_data_${currentUser}`;
-        const dataToSave = {
-          transactions,
-          categories,
-          profile: userProfile
-        };
-        localStorage.setItem(userKey, JSON.stringify(dataToSave));
-      } catch (error) {
-        console.error('Error saving data to localStorage:', error);
-      }
+      const userKey = `fintrack_data_${currentUser}`;
+      const dataToSave = {
+        transactions,
+        categories,
+        profile: userProfile
+      };
+      localStorage.setItem(userKey, JSON.stringify(dataToSave));
     }
   }, [transactions, categories, userProfile, currentUser]);
 
   const handleLogin = (username: string, password?: string) => {
-    try {
-      const userKey = `fintrack_data_${username}`;
-      const savedData = localStorage.getItem(userKey);
-      
-      if (savedData) {
-        try {
-          const parsed = JSON.parse(savedData);
-          if (parsed.profile?.password && parsed.profile.password !== password) {
-            alert("Palavra-passe incorreta!");
-            return;
-          }
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          alert("Erro ao carregar dados do utilizador. Por favor, tente novamente.");
-          return;
-        }
+    const userKey = `fintrack_data_${username}`;
+    const savedData = localStorage.getItem(userKey);
+    
+    if (savedData) {
+      const parsed = JSON.parse(savedData);
+      if (parsed.profile?.password && parsed.profile.password !== password) {
+        alert("Palavra-passe incorreta!");
+        return;
       }
-      
-      // Se a conta é nova, o password é definido agora
-      if (!savedData && password) {
-        setUserProfile(prev => ({ ...prev, name: username.charAt(0).toUpperCase() + username.slice(1), password }));
-      }
-
-      localStorage.setItem('fintrack_active_user', username);
-      setCurrentUser(username);
-    } catch (error) {
-      console.error('Error during login:', error);
-      alert("Erro ao iniciar sessão. Por favor, tente novamente.");
     }
+    
+    if (!savedData && password) {
+      setUserProfile(prev => ({ 
+        ...prev, 
+        name: username.charAt(0).toUpperCase() + username.slice(1), 
+        password 
+      }));
+    }
+
+    localStorage.setItem('fintrack_active_user', username);
+    setCurrentUser(username);
   };
 
   const handleLogout = () => {
