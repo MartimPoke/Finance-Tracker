@@ -8,9 +8,10 @@ interface SettingsViewProps {
   setTransactions: (t: Transaction[]) => void;
   userProfile: UserProfile;
   setUserProfile: React.Dispatch<React.SetStateAction<UserProfile>>;
+  onLogout: () => void;
 }
 
-const SettingsView: React.FC<SettingsViewProps> = ({ transactions, setTransactions, userProfile, setUserProfile }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ transactions, setTransactions, userProfile, setUserProfile, onLogout }) => {
   const [editingField, setEditingField] = useState<string | null>(null);
 
   const exportToCSV = () => {
@@ -23,145 +24,67 @@ const SettingsView: React.FC<SettingsViewProps> = ({ transactions, setTransactio
     link.click();
   };
 
-  const menuItems = [
-    { id: 'profile', label: 'Dados Pessoais', icon: 'fa-user', color: 'bg-blue-500' },
-    { id: 'security', label: 'Segurança', icon: 'fa-shield-halved', color: 'bg-green-500' },
-    { id: 'data', label: 'Dados e Exportação', icon: 'fa-database', color: 'bg-orange-500' },
-    { id: 'about', label: 'Sobre a App', icon: 'fa-circle-info', color: 'bg-gray-500' },
-  ];
+  const cardClass = userProfile.isDarkMode ? 'bg-[#1C1F23] border-[#2A2E33]' : 'bg-white border-gray-100';
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-center py-6">
-        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center text-3xl mb-4 text-blue-600 font-black shadow-inner">
+        <div className={`w-24 h-24 rounded-full flex items-center justify-center text-3xl mb-4 text-blue-600 font-black shadow-inner transition-colors ${userProfile.isDarkMode ? 'bg-[#1C1F23]' : 'bg-gray-100'}`}>
            {userProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
         </div>
-        <h2 className="text-2xl font-black text-gray-800">{userProfile.name}</h2>
-        <p className="text-sm font-bold text-gray-400">{userProfile.job} • {userProfile.age} anos</p>
+        <h2 className={`text-2xl font-black ${userProfile.isDarkMode ? 'text-white' : 'text-gray-800'}`}>{userProfile.name}</h2>
+        <p className={`text-sm font-bold ${userProfile.isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{userProfile.job} • {userProfile.age} anos</p>
       </div>
 
-      <div className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden">
+      <div className={`rounded-[2.5rem] border overflow-hidden transition-colors ${cardClass}`}>
         {/* Profile Section */}
         <div className="p-6">
-          <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 px-2">Perfil</h3>
+          <h3 className={`text-xs font-black uppercase tracking-widest mb-4 px-2 ${userProfile.isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Perfil</h3>
           <div className="space-y-1">
-            <SettingRow 
-              label="Nome" 
-              value={userProfile.name} 
-              onEdit={() => setEditingField('name')} 
-            />
-            <SettingRow 
-              label="Idade" 
-              value={userProfile.age.toString()} 
-              onEdit={() => setEditingField('age')} 
-            />
-            <SettingRow 
-              label="Profissão" 
-              value={userProfile.job} 
-              onEdit={() => setEditingField('job')} 
-            />
-            <SettingRow 
-              label="Moeda" 
-              value={userProfile.currency} 
-              onEdit={() => setEditingField('currency')} 
-            />
+            <SettingRow label="Nome" value={userProfile.name} onEdit={() => setEditingField('name')} isDarkMode={userProfile.isDarkMode} />
+            <SettingRow label="Idade" value={userProfile.age.toString()} onEdit={() => setEditingField('age')} isDarkMode={userProfile.isDarkMode} />
+            <SettingRow label="Profissão" value={userProfile.job} onEdit={() => setEditingField('job')} isDarkMode={userProfile.isDarkMode} />
           </div>
         </div>
 
-        {/* Security / Privacy */}
-        <div className="p-6 border-t border-gray-50">
-          <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 px-2">Privacidade</h3>
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-            <div className="flex items-center gap-3">
-               <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white text-xs">
-                 <i className="fa-solid fa-eye-slash"></i>
-               </div>
-               <span className="text-sm font-bold text-gray-700">Esconder Saldos</span>
-            </div>
-            <button 
-              onClick={() => setUserProfile(p => ({ ...p, hideBalance: !p.hideBalance }))}
-              className={`w-12 h-6 rounded-full transition-colors relative ${userProfile.hideBalance ? 'bg-blue-600' : 'bg-gray-200'}`}
-            >
-              <motion.div 
-                animate={{ x: userProfile.hideBalance ? 24 : 4 }}
-                className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm"
-              />
-            </button>
+        {/* Appearance & Security */}
+        <div className={`p-6 border-t ${userProfile.isDarkMode ? 'border-[#2A2E33]' : 'border-gray-50'}`}>
+          <h3 className={`text-xs font-black uppercase tracking-widest mb-4 px-2 ${userProfile.isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Aparência</h3>
+          <ToggleRow label="Modo Noturno" icon="fa-moon" iconColor="bg-indigo-500" active={userProfile.isDarkMode} onToggle={() => setUserProfile(p => ({ ...p, isDarkMode: !p.isDarkMode }))} isDarkMode={userProfile.isDarkMode} />
+          <div className="mt-4">
+             <ToggleRow label="Esconder Saldos" icon="fa-eye-slash" iconColor="bg-blue-500" active={userProfile.hideBalance} onToggle={() => setUserProfile(p => ({ ...p, hideBalance: !p.hideBalance }))} isDarkMode={userProfile.isDarkMode} />
           </div>
         </div>
 
-        {/* Data Section */}
-        <div className="p-6 border-t border-gray-50">
-          <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 px-2">Gestão de Dados</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <button 
-              onClick={exportToCSV}
-              className="flex flex-col items-center gap-2 p-4 bg-blue-50 text-blue-600 rounded-3xl transition-transform active:scale-95"
-            >
-              <i className="fa-solid fa-file-export text-lg"></i>
-              <span className="text-[10px] font-black uppercase">Exportar</span>
+        {/* Data & Session */}
+        <div className={`p-6 border-t ${userProfile.isDarkMode ? 'border-[#2A2E33]' : 'border-gray-50'}`}>
+          <h3 className={`text-xs font-black uppercase tracking-widest mb-4 px-2 ${userProfile.isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Sessão e Dados</h3>
+          <div className="space-y-3">
+            <button onClick={exportToCSV} className={`w-full flex items-center gap-4 p-4 rounded-2xl font-bold ${userProfile.isDarkMode ? 'bg-blue-900/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+              <i className="fa-solid fa-file-export"></i> Exportar Dados (CSV)
             </button>
-            <button 
-              onClick={() => { if(confirm('Apagar tudo?')) setTransactions([]) }}
-              className="flex flex-col items-center gap-2 p-4 bg-red-50 text-red-600 rounded-3xl transition-transform active:scale-95"
-            >
-              <i className="fa-solid fa-trash text-lg"></i>
-              <span className="text-[10px] font-black uppercase">Limpar</span>
+            <button onClick={onLogout} className="w-full flex items-center gap-4 p-4 rounded-2xl font-bold bg-red-50 text-red-600">
+              <i className="fa-solid fa-right-from-bracket"></i> Terminar Sessão
             </button>
           </div>
         </div>
       </div>
 
-      <p className="text-center text-[10px] font-bold text-gray-300 py-4 uppercase tracking-tighter">FinTrack v2.4.0 — Made with ❤️</p>
-
-      {/* Edit Modal */}
       <AnimatePresence>
         {editingField && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-end justify-center px-6 pb-12"
-          >
-            <motion.div 
-              initial={{ y: 100 }}
-              animate={{ y: 0 }}
-              exit={{ y: 100 }}
-              className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl"
-            >
-              <h4 className="text-xl font-black mb-6">Editar {editingField === 'name' ? 'Nome' : editingField === 'age' ? 'Idade' : editingField === 'job' ? 'Profissão' : 'Moeda'}</h4>
-              <input 
-                autoFocus
-                type={editingField === 'age' ? 'number' : 'text'}
-                defaultValue={userProfile[editingField as keyof UserProfile] as string}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const val = (e.target as HTMLInputElement).value;
-                    setUserProfile(p => ({ ...p, [editingField]: editingField === 'age' ? parseInt(val) : val }));
-                    setEditingField(null);
-                  }
-                }}
-                className="w-full bg-gray-50 border-none rounded-2xl p-4 text-lg font-bold focus:ring-2 focus:ring-blue-500 mb-6"
-              />
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end justify-center px-6 pb-12">
+            <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className={`w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl ${userProfile.isDarkMode ? 'bg-[#1C1F23]' : 'bg-white'}`}>
+              <h4 className={`text-xl font-black mb-6 ${userProfile.isDarkMode ? 'text-white' : 'text-gray-800'}`}>Editar {editingField}</h4>
+              <input autoFocus defaultValue={userProfile[editingField as keyof UserProfile] as string} onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const val = (e.target as HTMLInputElement).value;
+                  setUserProfile(p => ({ ...p, [editingField]: editingField === 'age' ? parseInt(val) : val }));
+                  setEditingField(null);
+                }
+              }} className={`w-full border-none rounded-2xl p-4 text-lg font-bold focus:ring-2 focus:ring-blue-500 mb-6 transition-colors ${userProfile.isDarkMode ? 'bg-[#2A2E33] text-white' : 'bg-gray-50 text-gray-800'}`} />
               <div className="flex gap-4">
-                <button 
-                  onClick={() => setEditingField(null)}
-                  className="flex-1 bg-gray-100 py-4 rounded-2xl font-bold text-gray-400"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  onClick={() => {
-                    const input = document.querySelector('input');
-                    if (input) {
-                       setUserProfile(p => ({ ...p, [editingField]: editingField === 'age' ? parseInt(input.value) : input.value }));
-                    }
-                    setEditingField(null);
-                  }}
-                  className="flex-1 bg-blue-600 py-4 rounded-2xl font-bold text-white shadow-lg shadow-blue-100"
-                >
-                  Salvar
-                </button>
+                <button onClick={() => setEditingField(null)} className={`flex-1 py-4 rounded-2xl font-bold ${userProfile.isDarkMode ? 'bg-[#2A2E33] text-gray-500' : 'bg-gray-100 text-gray-400'}`}>Cancelar</button>
+                <button onClick={() => setEditingField(null)} className="flex-1 bg-blue-600 py-4 rounded-2xl font-bold text-white shadow-lg">Salvar</button>
               </div>
             </motion.div>
           </motion.div>
@@ -171,16 +94,22 @@ const SettingsView: React.FC<SettingsViewProps> = ({ transactions, setTransactio
   );
 };
 
-const SettingRow: React.FC<{ label: string; value: string; onEdit: () => void }> = ({ label, value, onEdit }) => (
-  <button 
-    onClick={onEdit}
-    className="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-2xl transition-colors text-left"
-  >
-    <span className="text-sm font-bold text-gray-500">{label}</span>
-    <div className="flex items-center gap-2">
-      <span className="text-sm font-black text-gray-800">{value}</span>
-      <i className="fa-solid fa-chevron-right text-[10px] text-gray-300"></i>
+const ToggleRow: React.FC<{ label: string; icon: string; iconColor: string; active: boolean; onToggle: () => void; isDarkMode: boolean }> = ({ label, icon, iconColor, active, onToggle, isDarkMode }) => (
+  <div className={`flex items-center justify-between p-4 rounded-2xl ${isDarkMode ? 'bg-[#2A2E33]/30' : 'bg-gray-50'}`}>
+    <div className="flex items-center gap-3">
+       <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs ${iconColor}`}><i className={`fa-solid ${icon}`}></i></div>
+       <span className={`text-sm font-bold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{label}</span>
     </div>
+    <button onClick={onToggle} className={`w-12 h-6 rounded-full transition-colors relative ${active ? 'bg-blue-600' : (isDarkMode ? 'bg-[#2A2E33]' : 'bg-gray-200')}`}>
+      <motion.div animate={{ x: active ? 24 : 4 }} className="absolute top-1 w-4 h-4 bg-white rounded-full" />
+    </button>
+  </div>
+);
+
+const SettingRow: React.FC<{ label: string; value: string; onEdit: () => void; isDarkMode: boolean }> = ({ label, value, onEdit, isDarkMode }) => (
+  <button onClick={onEdit} className={`w-full flex items-center justify-between p-4 rounded-2xl transition-colors ${isDarkMode ? 'hover:bg-[#2A2E33]' : 'hover:bg-gray-50'}`}>
+    <span className={`text-sm font-bold ${isDarkMode ? 'text-gray-600' : 'text-gray-500'}`}>{label}</span>
+    <span className={`text-sm font-black ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{value}</span>
   </button>
 );
 

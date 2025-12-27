@@ -31,12 +31,14 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, onAddCl
     return val.toLocaleString('pt-PT', { style: 'currency', currency: userProfile.currency || 'EUR' });
   };
 
+  const cardClass = userProfile.isDarkMode ? 'bg-[#1C1F23] border-[#2A2E33]' : 'bg-white border-gray-100';
+
   return (
     <div className="space-y-6">
       <motion.div 
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-[#191C1F] p-8 rounded-[2.5rem] text-white relative overflow-hidden shadow-2xl shadow-gray-200"
+        className={`p-8 rounded-[2.5rem] relative overflow-hidden shadow-2xl transition-all duration-500 ${userProfile.isDarkMode ? 'bg-[#1C1F23] text-white shadow-none border border-[#2A2E33]' : 'bg-[#191C1F] text-white shadow-gray-200'}`}
       >
         <div className="relative z-10">
           <p className="text-gray-400 text-sm font-semibold mb-1">Total em conta</p>
@@ -56,26 +58,26 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, onAddCl
       </motion.div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white p-5 rounded-[2rem] border border-gray-100 flex flex-col gap-2">
-          <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+        <div className={`p-5 rounded-[2rem] border flex flex-col gap-2 transition-colors ${cardClass}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${userProfile.isDarkMode ? 'bg-green-900/20 text-green-400' : 'bg-green-50 text-green-600'}`}>
             <i className="fa-solid fa-arrow-up text-sm"></i>
           </div>
-          <span className="text-xs font-bold text-gray-400 uppercase">Entradas</span>
+          <span className={`text-xs font-bold uppercase ${userProfile.isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Entradas</span>
           <span className="text-lg font-black text-green-600">{formatValue(income)}</span>
         </div>
-        <div className="bg-white p-5 rounded-[2rem] border border-gray-100 flex flex-col gap-2">
-          <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-600">
+        <div className={`p-5 rounded-[2rem] border flex flex-col gap-2 transition-colors ${cardClass}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${userProfile.isDarkMode ? 'bg-red-900/20 text-red-400' : 'bg-red-50 text-red-600'}`}>
             <i className="fa-solid fa-arrow-down text-sm"></i>
           </div>
-          <span className="text-xs font-bold text-gray-400 uppercase">Saídas</span>
+          <span className={`text-xs font-bold uppercase ${userProfile.isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Saídas</span>
           <span className="text-lg font-black text-red-600">{formatValue(expenses)}</span>
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-[2.5rem] border border-gray-100">
-        <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center justify-between">
+      <div className={`p-6 rounded-[2.5rem] border transition-colors ${cardClass}`}>
+        <h3 className={`text-sm font-bold mb-4 flex items-center justify-between ${userProfile.isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>
           Atividade Semanal
-          <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full font-black">Gastos</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-black ${userProfile.isDarkMode ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>Gastos</span>
         </h3>
         <div className="h-32 w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -90,7 +92,7 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, onAddCl
                 <Tooltip content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-[#191C1F] text-white text-[10px] font-bold px-2 py-1 rounded-lg">
+                      <div className={`text-[10px] font-bold px-2 py-1 rounded-lg ${userProfile.isDarkMode ? 'bg-white text-black' : 'bg-[#191C1F] text-white'}`}>
                         {payload[0].value}€
                       </div>
                     );
@@ -106,8 +108,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, onAddCl
 
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-black text-gray-800">Recentes</h3>
-          <button className="text-xs font-bold text-blue-600">Histórico completo</button>
+          <h3 className={`text-lg font-black ${userProfile.isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Recentes</h3>
+          <button className="text-xs font-bold text-blue-600">Ver tudo</button>
         </div>
         <div className="space-y-3">
           {transactions.slice(0, 3).map(t => {
@@ -117,18 +119,18 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions, categories, onAddCl
                 key={t.id} 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-white p-4 rounded-2xl border border-gray-100 flex items-center justify-between"
+                className={`p-4 rounded-2xl border flex items-center justify-between transition-colors ${cardClass}`}
               >
                 <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm" style={{ backgroundColor: cat?.color }}>
+                   <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm shadow-sm" style={{ backgroundColor: cat?.color }}>
                      <i className={`fa-solid ${cat?.icon || 'fa-tag'}`}></i>
                    </div>
                    <div>
-                     <p className="text-sm font-extrabold text-[#191C1F] truncate max-w-[120px]">{t.description}</p>
-                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{cat?.name}</p>
+                     <p className={`text-sm font-extrabold truncate max-w-[120px] ${userProfile.isDarkMode ? 'text-gray-200' : 'text-[#191C1F]'}`}>{t.description}</p>
+                     <p className={`text-[10px] font-bold uppercase tracking-tighter ${userProfile.isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>{cat?.name}</p>
                    </div>
                 </div>
-                <span className={`text-sm font-black ${t.type === TransactionType.INCOME ? 'text-green-600' : 'text-gray-900'}`}>
+                <span className={`text-sm font-black ${t.type === TransactionType.INCOME ? 'text-green-600' : (userProfile.isDarkMode ? 'text-white' : 'text-gray-900')}`}>
                   {userProfile.hideBalance ? '••••' : `${t.type === TransactionType.INCOME ? '+' : '-'}${t.amount.toFixed(2)}€`}
                 </span>
               </motion.div>

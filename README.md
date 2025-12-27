@@ -1,57 +1,49 @@
 # FinTrack - Minimalist Expense Tracker
 
-A powerful, minimalist personal finance tracker built with React, TypeScript, and Vite. Track your expenses, manage budgets, and analyze your spending patterns with a beautiful, modern interface.
+<div align="center">
+  <h3>A powerful, minimalist personal finance tracker with advanced analytics, 50/30/20 rule analysis, and budget monitoring.</h3>
+</div>
 
-## Features
+## ✨ Features
 
-- 💰 **Transaction Management**: Add income and expenses with detailed categorization
-- 📊 **Dashboard Analytics**: Visual charts and insights into your spending patterns
-- 🎯 **Budget Tracking**: Set and monitor budgets for different categories
-- 📱 **Modern UI**: Beautiful, responsive design with smooth animations
-- 💾 **Local Storage**: All data is stored locally in your browser
-- 📅 **History View**: Filter transactions by month and year
-- 🏷️ **Category Management**: Create and customize spending categories
-- 🔒 **Privacy Controls**: Hide balance for privacy
-- 📤 **Data Export**: Export your transactions to CSV
+- 📊 **Dashboard Overview** - Real-time balance, income, and expense tracking with beautiful charts
+- 💰 **Transaction Management** - Add, edit, and delete income and expense transactions
+- 📁 **Category Management** - Organize transactions with customizable categories following the 50/30/20 rule
+- 📈 **Weekly Activity Charts** - Visualize your spending patterns with interactive charts
+- 🌙 **Dark Mode** - Beautiful dark theme for comfortable viewing
+- 🔒 **User Accounts** - Multiple user support with local storage
+- 📤 **Data Export** - Export your transactions to CSV
+- 💳 **Payment Methods** - Track transactions by payment method (Card, Cash, MB Way, etc.)
+- 🔄 **Recurring Transactions** - Mark transactions as recurring for better tracking
 
-## Tech Stack
-
-- **React 19** - UI framework
-- **TypeScript** - Type safety
-- **Vite** - Build tool and dev server
-- **Framer Motion** - Animations
-- **Recharts** - Data visualization
-- **Tailwind CSS** - Styling
-- **Font Awesome** - Icons
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
+- Node.js (v18 or higher recommended)
 - npm or yarn
 
 ### Installation
 
 1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/fintrack-minimalist-expense-tracker.git
-cd fintrack-minimalist-expense-tracker
-```
+   ```bash
+   git clone https://github.com/yourusername/fintrack.git
+   cd fintrack
+   ```
 
 2. Install dependencies:
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-3. Start the development server:
-```bash
-npm run dev
-```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
 4. Open your browser and navigate to `http://localhost:3000`
 
-### Build for Production
+### Building for Production
 
 ```bash
 npm run build
@@ -59,52 +51,50 @@ npm run build
 
 The production build will be in the `dist` directory.
 
-### Preview Production Build
+## 🛠️ Tech Stack
 
-```bash
-npm run preview
-```
+- **React 19** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool and dev server
+- **Framer Motion** - Smooth animations
+- **Recharts** - Data visualization
+- **Tailwind CSS** - Styling (via CDN)
+- **Font Awesome** - Icons
 
-## Project Structure
+## 📱 Usage
 
-```
-fintrack-minimalist-expense-tracker/
-├── components/
-│   ├── Dashboard.tsx          # Main dashboard with balance and charts
-│   ├── TransactionForm.tsx    # Form to add new transactions
-│   ├── TransactionList.tsx    # List view of transactions
-│   ├── CategoryManager.tsx    # Manage categories and budgets
-│   ├── HistoryView.tsx        # Historical transaction view
-│   └── SettingsView.tsx       # User settings and profile
-├── App.tsx                    # Main app component
-├── index.tsx                  # Entry point
-├── types.ts                   # TypeScript type definitions
-├── constants.tsx              # Initial data and constants
-└── vite.config.ts             # Vite configuration
-```
+1. **Create an Account**: Enter a username and password to create your account
+2. **Add Transactions**: Click the "+" button to add income or expenses
+3. **Manage Categories**: Customize your spending categories and set budgets
+4. **View History**: Browse your transaction history by month and year
+5. **Export Data**: Export your transactions to CSV from the settings page
 
-## Usage
+## 🎨 Features in Detail
 
-1. **Add Transactions**: Click the "+" button in the bottom navigation to add income or expenses
-2. **View Dashboard**: See your balance, income, expenses, and weekly spending trends
-3. **Browse History**: Navigate to the history tab to view past transactions by month
-4. **Manage Categories**: Create custom categories and set monthly budgets
-5. **Settings**: Update your profile, export data, or manage privacy settings
+### 50/30/20 Rule
+The app organizes categories into three groups:
+- **50% Needs** - Essential expenses (Rent, Food, Transport, Health)
+- **30% Wants** - Non-essential expenses (Entertainment, Subscriptions)
+- **20% Savings** - Savings and investments
 
-## Data Storage
+### Budget Tracking
+Set budgets for each category and track your spending against them.
 
-All data is stored locally in your browser's localStorage. No data is sent to any external servers, ensuring complete privacy.
+### Privacy
+All data is stored locally in your browser. No data is sent to external servers.
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
+## 📝 License
 
 This project is open source and available under the MIT License.
 
-## Acknowledgments
+## 🤝 Contributing
 
-- Built with ❤️ using React and TypeScript
-- Icons provided by Font Awesome
-- Charts powered by Recharts
+Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
+
+## 👤 Author
+
+Built with ❤️ for better financial management
+
+---
+
+**Note**: This app stores all data locally in your browser. Make sure to export your data regularly if you need backups.

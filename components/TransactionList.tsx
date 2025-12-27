@@ -7,10 +7,12 @@ interface TransactionListProps {
   transactions: Transaction[];
   categories: Category[];
   onDelete: (id: string) => void;
+  userProfile?: { isDarkMode: boolean };
 }
 
-const TransactionList: React.FC<TransactionListProps> = ({ transactions, categories, onDelete }) => {
-  // Group transactions by date
+const TransactionList: React.FC<TransactionListProps> = ({ transactions, categories, onDelete, userProfile }) => {
+  const isDarkMode = userProfile?.isDarkMode ?? false;
+  
   const grouped = transactions.reduce((acc, t) => {
     const date = t.date;
     if (!acc[date]) acc[date] = [];
@@ -20,11 +22,13 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, categor
 
   const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
+  const cardClass = isDarkMode ? 'bg-[#1C1F23] border-[#2A2E33] active:bg-[#2A2E33]' : 'bg-white border-gray-100 active:bg-gray-50';
+
   return (
     <div className="space-y-6 pb-4">
       {sortedDates.map((date) => (
         <div key={date}>
-          <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 px-1">
+          <h4 className={`text-[10px] font-black uppercase tracking-widest mb-3 px-1 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
             {new Date(date).toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long' })}
           </h4>
           <div className="space-y-2">
@@ -36,7 +40,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, categor
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="bg-white p-4 rounded-[1.5rem] border border-gray-100 flex items-center justify-between group relative overflow-hidden active:bg-gray-50 transition-colors"
+                  className={`p-4 rounded-[1.5rem] border flex items-center justify-between group relative overflow-hidden transition-colors ${cardClass}`}
                 >
                   <div className="flex items-center gap-4">
                     <div 
@@ -46,22 +50,22 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, categor
                       <i className={`fa-solid ${cat?.icon || 'fa-tag'} text-lg`}></i>
                     </div>
                     <div>
-                      <h5 className="text-sm font-extrabold text-[#191C1F]">{t.description}</h5>
+                      <h5 className={`text-sm font-extrabold ${isDarkMode ? 'text-gray-200' : 'text-[#191C1F]'}`}>{t.description}</h5>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{cat?.name}</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-tight ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>{cat?.name}</span>
                         <span className="text-[8px] text-gray-300">•</span>
-                        <span className="text-[10px] font-bold text-gray-400">{t.method}</span>
+                        <span className={`text-[10px] font-bold ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>{t.method}</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="flex flex-col items-end gap-1">
-                    <span className={`text-sm font-black ${t.type === TransactionType.INCOME ? 'text-green-600' : 'text-[#191C1F]'}`}>
+                    <span className={`text-sm font-black ${t.type === TransactionType.INCOME ? 'text-green-600' : (isDarkMode ? 'text-white' : 'text-[#191C1F]')}`}>
                       {t.type === TransactionType.INCOME ? '+' : '-'}{t.amount.toFixed(2)}€
                     </span>
                     <button 
                       onClick={() => onDelete(t.id)}
-                      className="text-gray-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      className={`transition-colors opacity-0 group-hover:opacity-100 ${isDarkMode ? 'text-gray-700 hover:text-red-500' : 'text-gray-200 hover:text-red-500'}`}
                     >
                       <i className="fa-solid fa-trash-can text-xs"></i>
                     </button>
@@ -74,10 +78,10 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, categor
       ))}
       {transactions.length === 0 && (
         <div className="py-20 text-center">
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300 text-2xl">
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl ${isDarkMode ? 'bg-[#1C1F23] text-gray-700' : 'bg-gray-50 text-gray-300'}`}>
             <i className="fa-solid fa-receipt"></i>
           </div>
-          <p className="text-gray-400 font-bold text-sm">Sem movimentos para exibir.</p>
+          <p className={`font-bold text-sm ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Sem movimentos para exibir.</p>
         </div>
       )}
     </div>

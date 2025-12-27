@@ -5,59 +5,124 @@ import { Transaction, Category, TransactionType, UserProfile } from './types';
 import { INITIAL_CATEGORIES, INITIAL_TRANSACTIONS } from './constants';
 import Dashboard from './components/Dashboard';
 import TransactionForm from './components/TransactionForm';
-import TransactionList from './components/TransactionList';
 import CategoryManager from './components/CategoryManager';
 import SettingsView from './components/SettingsView';
 import HistoryView from './components/HistoryView';
+import LandingPage from './components/LandingPage';
 
 const App: React.FC = () => {
+  const [currentUser, setCurrentUser] = useState<string | null>(localStorage.getItem('fintrack_active_user'));
   const [activeTab, setActiveTab] = useState<'home' | 'history' | 'add' | 'categories' | 'more'>('home');
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
-  
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    name: 'João Silva',
-    age: 28,
-    job: 'Designer',
+    name: 'Utilizador',
+    age: 25,
+    job: 'Financista',
     currency: 'EUR',
-    hideBalance: false
+    hideBalance: false,
+    isDarkMode: false
   });
 
   useEffect(() => {
-    try {
-      const savedTransactions = localStorage.getItem('fintrack_transactions_v2');
-      const savedCategories = localStorage.getItem('fintrack_categories_v2');
-      const savedProfile = localStorage.getItem('fintrack_profile_v2');
+    if (currentUser) {
+      const userKey = `fintrack_data_${currentUser}`;
+      const savedData = localStorage.getItem(userKey);
       
-      if (savedTransactions) {
-        const parsed = JSON.parse(savedTransactions);
-        if (Array.isArray(parsed)) setTransactions(parsed);
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          setTransactions(parsed.transactions || []);
+          setCategories(parsed.categories || INITIAL_CATEGORIES);
+          setUserProfile(parsed.profile || {
+            name: currentUser.charAt(0).toUpperCase() + currentUser.slice(1),
+            age: 25,
+            job: 'Financista',
+            currency: 'EUR',
+            hideBalance: false,
+            isDarkMode: false
+          });
+        } catch (error) {
+          console.error('Error parsing saved data:', error);
+          setTransactions(INITIAL_TRANSACTIONS);
+          setCategories(INITIAL_CATEGORIES);
+          setUserProfile({
+            name: currentUser.charAt(0).toUpperCase() + currentUser.slice(1),
+            age: 25,
+            job: 'Financista',
+            currency: 'EUR',
+            hideBalance: false,
+            isDarkMode: false
+          });
+        }
+      } else {
+        setTransactions(INITIAL_TRANSACTIONS);
+        setCategories(INITIAL_CATEGORIES);
+        setUserProfile({
+          name: currentUser.charAt(0).toUpperCase() + currentUser.slice(1),
+          age: 25,
+          job: 'Financista',
+          currency: 'EUR',
+          hideBalance: false,
+          isDarkMode: false
+        });
       }
-      if (savedCategories) {
-        const parsed = JSON.parse(savedCategories);
-        if (Array.isArray(parsed)) setCategories(parsed);
-      }
-      if (savedProfile) {
-        const parsed = JSON.parse(savedProfile);
-        if (parsed && typeof parsed === 'object') setUserProfile(parsed);
-      }
-    } catch (error) {
-      console.error('Error loading data from localStorage:', error);
     }
-  }, []);
+  }, [currentUser]);
 
   useEffect(() => {
-    localStorage.setItem('fintrack_transactions_v2', JSON.stringify(transactions));
-    localStorage.setItem('fintrack_categories_v2', JSON.stringify(categories));
-    localStorage.setItem('fintrack_profile_v2', JSON.stringify(userProfile));
-  }, [transactions, categories, userProfile]);
+    if (currentUser) {
+      try {
+        const userKey = `fintrack_data_${currentUser}`;
+        const dataToSave = {
+          transactions,
+          categories,
+          profile: userProfile
+        };
+        localStorage.setItem(userKey, JSON.stringify(dataToSave));
+      } catch (error) {
+        console.error('Error saving data to localStorage:', error);
+      }
+    }
+  }, [transactions, categories, userProfile, currentUser]);
 
-  const addTransaction = (t: Transaction) => {
-    setTransactions(prev => [t, ...prev]);
+  const handleLogin = (username: string, password?: string) => {
+    try {
+      const userKey = `fintrack_data_${username}`;
+      const savedData = localStorage.getItem(userKey);
+      
+      if (savedData) {
+        try {
+          const parsed = JSON.parse(savedData);
+          if (parsed.profile?.password && parsed.profile.password !== password) {
+            alert("Palavra-passe incorreta!");
+            return;
+          }
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          alert("Erro ao carregar dados do utilizador. Por favor, tente novamente.");
+          return;
+        }
+      }
+      
+      // Se a conta é nova, o password é definido agora
+      if (!savedData && password) {
+        setUserProfile(prev => ({ ...prev, name: username.charAt(0).toUpperCase() + username.slice(1), password }));
+      }
+
+      localStorage.setItem('fintrack_active_user', username);
+      setCurrentUser(username);
+    } catch (error) {
+      console.error('Error during login:', error);
+      alert("Erro ao iniciar sessão. Por favor, tente novamente.");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('fintrack_active_user');
+    setCurrentUser(null);
     setActiveTab('home');
   };
-  
-  const deleteTransaction = (id: string) => setTransactions(prev => prev.filter(t => t.id !== id));
 
   const initials = useMemo(() => {
     return userProfile.name
@@ -68,127 +133,88 @@ const App: React.FC = () => {
       .slice(0, 2);
   }, [userProfile.name]);
 
-  const greeting = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Bom dia';
-    if (hour < 19) return 'Boa tarde';
-    return 'Boa noite';
-  }, []);
+  if (!currentUser) {
+    return <LandingPage onLogin={handleLogin} />;
+  }
 
   return (
-    <div className="flex flex-col h-screen max-w-lg mx-auto bg-white shadow-2xl relative overflow-hidden">
-      {/* Header */}
-      <header className="px-6 pt-12 pb-6 bg-white shrink-0">
+    <div className={`flex flex-col h-screen max-w-lg mx-auto shadow-2xl relative overflow-hidden transition-colors duration-500 ${userProfile.isDarkMode ? 'bg-[#0A0C0E] text-white' : 'bg-white text-[#191C1F]'}`}>
+      <header className={`px-6 pt-12 pb-6 shrink-0 transition-colors ${userProfile.isDarkMode ? 'bg-[#0A0C0E]' : 'bg-white'}`}>
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-3">
             <motion.div 
               key={initials}
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
-              className="w-10 h-10 bg-[#0075EB] rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-100"
+              className={`w-10 h-10 bg-[#0075EB] rounded-full flex items-center justify-center text-white font-bold text-lg transition-all ${userProfile.isDarkMode ? 'shadow-none' : 'shadow-lg shadow-blue-100'}`}
             >
               {initials}
             </motion.div>
             <div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{greeting},</p>
-              <h2 className="text-xl font-extrabold text-[#191C1F]">{userProfile.name.split(' ')[0]}</h2>
+              <p className={`text-xs font-bold uppercase tracking-widest ${userProfile.isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Olá,</p>
+              <h2 className="text-xl font-extrabold">{userProfile.name.split(' ')[0]}</h2>
             </div>
           </div>
           <div className="flex gap-2">
             <motion.button 
               whileTap={{ scale: 0.9 }}
               onClick={() => setUserProfile(p => ({ ...p, hideBalance: !p.hideBalance }))}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${userProfile.hideBalance ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400'}`}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${userProfile.isDarkMode ? (userProfile.hideBalance ? 'bg-blue-900/40 text-blue-400' : 'bg-[#1C1F23] text-gray-500') : (userProfile.hideBalance ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-400')}`}
             >
               <i className={`fa-solid ${userProfile.hideBalance ? 'fa-eye-slash' : 'fa-eye'}`}></i>
             </motion.button>
             <motion.button 
               whileTap={{ scale: 0.9 }}
-              className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 border border-gray-100"
+              onClick={handleLogout}
+              className={`w-10 h-10 rounded-full flex items-center justify-center border transition-colors ${userProfile.isDarkMode ? 'bg-[#1C1F23] border-[#2A2E33] text-red-400' : 'bg-red-50 border-red-100 text-red-500'}`}
             >
-              <i className="fa-solid fa-bell"></i>
+              <i className="fa-solid fa-right-from-bracket"></i>
             </motion.button>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto no-scrollbar pb-24 px-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, x: activeTab === 'home' ? -10 : 10 }}
+            initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: activeTab === 'home' ? 10 : -10 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2 }}
           >
-            {activeTab === 'home' && (
-              <Dashboard 
-                transactions={transactions} 
-                categories={categories} 
-                onAddClick={() => setActiveTab('add')} 
-                userProfile={userProfile}
-              />
-            )}
-            {activeTab === 'history' && (
-              <HistoryView transactions={transactions} categories={categories} onDelete={deleteTransaction} />
-            )}
-            {activeTab === 'add' && (
-              <div className="py-4">
-                <TransactionForm onSubmit={addTransaction} categories={categories} />
-              </div>
-            )}
-            {activeTab === 'categories' && (
-              <CategoryManager 
-                categories={categories} 
-                onAdd={c => setCategories(prev => [...prev, c])} 
-                onUpdate={(id, up) => setCategories(prev => prev.map(c => c.id === id ? {...c, ...up} : c))} 
-              />
-            )}
-            {activeTab === 'more' && (
-              <SettingsView 
-                transactions={transactions} 
-                setTransactions={setTransactions} 
-                userProfile={userProfile}
-                setUserProfile={setUserProfile}
-              />
-            )}
+            {activeTab === 'home' && <Dashboard transactions={transactions} categories={categories} onAddClick={() => setActiveTab('add')} userProfile={userProfile} />}
+            {activeTab === 'history' && <HistoryView transactions={transactions} categories={categories} onDelete={(id) => setTransactions(prev => prev.filter(t => t.id !== id))} userProfile={userProfile} />}
+            {activeTab === 'add' && <div className="py-4"><TransactionForm onSubmit={(t) => {setTransactions(prev => [t, ...prev]); setActiveTab('home');}} categories={categories} userProfile={userProfile} /></div>}
+            {activeTab === 'categories' && <CategoryManager categories={categories} onAdd={c => setCategories(prev => [...prev, c])} onUpdate={(id, up) => setCategories(prev => prev.map(c => c.id === id ? {...c, ...up} : c))} userProfile={userProfile} />}
+            {activeTab === 'more' && <SettingsView transactions={transactions} setTransactions={setTransactions} userProfile={userProfile} setUserProfile={setUserProfile} onLogout={handleLogout} />}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white/80 backdrop-blur-xl border-t border-gray-100 px-6 py-4 flex justify-between items-center z-50">
-        <NavButton icon="fa-house" label="Home" active={activeTab === 'home'} onClick={() => setActiveTab('home')} />
-        <NavButton icon="fa-chart-line" label="Histórico" active={activeTab === 'history'} onClick={() => setActiveTab('history')} />
+      <nav className={`fixed bottom-0 left-0 right-0 max-w-lg mx-auto border-t transition-all z-50 px-6 py-4 flex justify-between items-center ${userProfile.isDarkMode ? 'bg-[#0A0C0E]/80 border-[#1C1F23]' : 'bg-white/80 border-gray-100'} backdrop-blur-xl`}>
+        <NavButton icon="fa-house" label="Home" active={activeTab === 'home'} onClick={() => setActiveTab('home')} isDarkMode={userProfile.isDarkMode} />
+        <NavButton icon="fa-chart-line" label="Histórico" active={activeTab === 'history'} onClick={() => setActiveTab('history')} isDarkMode={userProfile.isDarkMode} />
         
         <motion.button 
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setActiveTab('add')}
-          className="w-14 h-14 bg-[#0075EB] rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-200 -mt-12 border-4 border-white"
+          whileTap={{ scale: 0.95 }} 
+          onClick={() => setActiveTab('add')} 
+          className={`w-14 h-14 bg-[#0075EB] rounded-2xl flex items-center justify-center text-white -mt-12 border-4 transition-all ${userProfile.isDarkMode ? 'border-[#0A0C0E] shadow-none' : 'border-white shadow-xl shadow-blue-200'}`}
         >
           <i className="fa-solid fa-plus text-xl"></i>
         </motion.button>
 
-        <NavButton icon="fa-layer-group" label="Categorias" active={activeTab === 'categories'} onClick={() => setActiveTab('categories')} />
-        <NavButton icon="fa-user" label="Perfil" active={activeTab === 'more'} onClick={() => setActiveTab('more')} />
+        <NavButton icon="fa-layer-group" label="Categorias" active={activeTab === 'categories'} onClick={() => setActiveTab('categories')} isDarkMode={userProfile.isDarkMode} />
+        <NavButton icon="fa-user" label="Perfil" active={activeTab === 'more'} onClick={() => setActiveTab('more')} isDarkMode={userProfile.isDarkMode} />
       </nav>
     </div>
   );
 };
 
-const NavButton: React.FC<{ icon: string; label: string; active: boolean; onClick: () => void }> = ({ icon, label, active, onClick }) => (
+const NavButton: React.FC<{ icon: string; label: string; active: boolean; onClick: () => void; isDarkMode: boolean }> = ({ icon, label, active, onClick, isDarkMode }) => (
   <button onClick={onClick} className="flex flex-col items-center gap-1 group">
-    <div className={`text-xl transition-all duration-300 ${active ? 'text-[#0075EB]' : 'text-gray-400 group-hover:text-gray-600'}`}>
-      <i className={`fa-solid ${icon}`}></i>
-    </div>
-    <span className={`text-[10px] font-bold tracking-tight transition-all duration-300 ${active ? 'text-[#0075EB]' : 'text-gray-400 group-hover:text-gray-600'}`}>
-      {label}
-    </span>
-    {active && (
-      <motion.div layoutId="navIndicator" className="w-1 h-1 bg-[#0075EB] rounded-full mt-1" />
-    )}
+    <div className={`text-xl transition-all ${active ? 'text-[#0075EB]' : (isDarkMode ? 'text-gray-600' : 'text-gray-400')}`}><i className={`fa-solid ${icon}`}></i></div>
+    <span className={`text-[10px] font-bold ${active ? 'text-[#0075EB]' : (isDarkMode ? 'text-gray-600' : 'text-gray-400')}`}>{label}</span>
   </button>
 );
 

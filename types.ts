@@ -13,10 +13,12 @@ export enum CategoryGroup {
 
 export interface UserProfile {
   name: string;
+  password?: string;
   age: number;
   job: string;
   currency: string;
   hideBalance: boolean;
+  isDarkMode: boolean;
 }
 
 export interface Category {
