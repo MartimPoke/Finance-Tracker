@@ -21,7 +21,8 @@ const App: React.FC = () => {
     job: 'Financista',
     currency: 'EUR',
     hideBalance: false,
-    isDarkMode: false
+    isDarkMode: false,
+    birthDate: '1998-01-01'
   });
 
   useEffect(() => {
@@ -30,18 +31,21 @@ const App: React.FC = () => {
       const savedData = localStorage.getItem(userKey);
       
       if (savedData) {
-        const parsed = JSON.parse(savedData);
-        setTransactions(parsed.transactions || []);
-        setCategories(parsed.categories || INITIAL_CATEGORIES);
-        setUserProfile(parsed.profile || { ...userProfile, name: currentUser });
+        try {
+          const parsed = JSON.parse(savedData);
+          setTransactions(parsed.transactions || []);
+          setCategories(parsed.categories || INITIAL_CATEGORIES);
+          setUserProfile(prev => ({ ...prev, ...parsed.profile, name: parsed.profile?.name || currentUser }));
+        } catch (e) {
+          console.error("Erro ao carregar dados do utilizador", e);
+        }
       } else {
-        // NOVO UTILIZADOR: Começa com TUDO A ZEROS
         setTransactions([]); 
         setCategories(INITIAL_CATEGORIES);
-        setUserProfile({ 
-          ...userProfile, 
+        setUserProfile(prev => ({ 
+          ...prev, 
           name: currentUser.charAt(0).toUpperCase() + currentUser.slice(1) 
-        });
+        }));
       }
     }
   }, [currentUser]);
@@ -91,6 +95,7 @@ const App: React.FC = () => {
   const initials = useMemo(() => {
     return userProfile.name
       .split(' ')
+      .filter(Boolean)
       .map(n => n[0])
       .join('')
       .toUpperCase()

@@ -19,6 +19,7 @@ export interface UserProfile {
   currency: string;
   hideBalance: boolean;
   isDarkMode: boolean;
+  birthDate?: string; // Adicionado para suportar data no perfil
 }
 
 export interface Category {
