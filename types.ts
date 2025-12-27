@@ -11,6 +11,14 @@ export enum CategoryGroup {
   INCOME = 'INCOME'
 }
 
+export interface UserProfile {
+  name: string;
+  age: number;
+  job: string;
+  currency: string;
+  hideBalance: boolean;
+}
+
 export interface Category {
   id: string;
   name: string;

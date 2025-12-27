@@ -1,23 +1,8 @@
 {
-  "name": "finance-tracker",
+  "name": "fintrack-minimalist-expense-tracker",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "A minimalist personal finance tracker with expense management, budget monitoring, and financial analytics",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/MartimPoke/Finance-Tracker.git"
-  },
-  "keywords": [
-    "finance",
-    "expense-tracker",
-    "budget",
-    "personal-finance",
-    "react",
-    "typescript"
-  ],
-  "author": "",
-  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

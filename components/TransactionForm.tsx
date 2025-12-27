@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Transaction, Category, TransactionType, CategoryGroup } from '../types';
+import { Transaction, Category, TransactionType } from '../types';
 import { PAYMENT_METHODS } from '../constants';
 
 interface TransactionFormProps {
@@ -23,8 +23,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, categories 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const amount = parseFloat(formData.amount);
-    if (!formData.amount || !formData.categoryId || !formData.description || isNaN(amount) || amount <= 0) return;
-    
+    if (!formData.amount || isNaN(amount) || amount <= 0 || !formData.categoryId || !formData.description.trim()) return;
     onSubmit({
       id: crypto.randomUUID(),
       amount: amount,
@@ -35,7 +34,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, categories 
       description: formData.description.trim(),
       isRecurring: formData.isRecurring
     });
-    
     // Reset form
     setFormData({
       amount: '',
@@ -48,28 +46,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, categories 
     });
   };
 
-  // Filter categories based on transaction type
-  const availableCategories = categories.filter(cat => 
-    formData.type === TransactionType.INCOME 
-      ? cat.group === CategoryGroup.INCOME
-      : cat.group !== CategoryGroup.INCOME
-  );
-
-  // Update categoryId when transaction type changes or if current selection is invalid
-  useEffect(() => {
-    const filtered = categories.filter(cat => 
-      formData.type === TransactionType.INCOME 
-        ? cat.group === CategoryGroup.INCOME
-        : cat.group !== CategoryGroup.INCOME
-    );
-    const isValidCategory = filtered.find(c => c.id === formData.categoryId);
-    if (!isValidCategory && filtered.length > 0) {
-      setFormData(f => ({ ...f, categoryId: filtered[0].id }));
-    }
-  }, [formData.type, formData.categoryId, categories]);
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-6">
       <h2 className="text-2xl font-black text-gray-800">Novo Registo</h2>
       
       <div className="bg-gray-100 p-1.5 rounded-[1.5rem] flex">
@@ -108,7 +86,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, categories 
             onChange={e => setFormData(f => ({ ...f, categoryId: e.target.value }))}
             className="flex-1 bg-transparent border-none text-sm font-bold text-gray-800 focus:ring-0"
           >
-            {availableCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </div>
 
@@ -138,15 +116,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onSubmit, categories 
       </div>
 
       <motion.button
-        type="submit"
         whileTap={{ scale: 0.98 }}
         onClick={handleSubmit}
-        disabled={!formData.amount || !formData.categoryId || !formData.description || parseFloat(formData.amount) <= 0}
-        className="w-full bg-[#0075EB] text-white py-5 rounded-3xl font-black shadow-xl shadow-blue-100 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-[#0075EB] text-white py-5 rounded-3xl font-black shadow-xl shadow-blue-100 mt-4"
       >
         Confirmar
       </motion.button>
-    </form>
+    </div>
   );
 };
 
